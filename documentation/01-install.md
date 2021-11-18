@@ -65,9 +65,87 @@ istio-ingressgateway   LoadBalancer   10.43.179.203   172.19.0.3    15021:32339/
 
 ## Monitoring : Prometheus
 
+While you can build your own dashboards, Istio offers a set of preconfigured dashboards for all of the most important metrics for the mesh and for the control plane.
+
+- **Mesh** Dashboard provides an overview of all services in the mesh.
+- **Service** Dashboard provides a detailed breakdown of metrics for a service.
+- **Workload** Dashboard provides a detailed breakdown of metrics for a workload.
+- **Performance** Dashboard monitors the resource usage of the mesh.
+- **Control Plane** Dashboard monitors the health and performance of the control plane.
+
+ID of dashboards are the following : 7639, 11829, 7636, 7630, 7645.
+
 The helm chart operator deploys a `ServiceMonitor` for itself in the namespace where it is installed. But this `ServiceMonitor` is not enough to scrape metrics of the Istio instance.
 
-You can use these `ServiceMonitor` and `PodMonitor` to add information to the grafana dashboard. Just make sure that the `labels.release` section match the needed key word for your prometheus operator.
+You can use this `ServiceMonitor` and `PodMonitor` to add information to the grafana dashboard. Just make sure that the `labels.release` section match the needed key word for your prometheus operator.:
+
+- https://github.com/istio/istio/blob/master/samples/addons/extras/prometheus-operator.yaml
+
+another resource :
+
+- https://prune998.medium.com/prometheus-operator-and-istio-telemetry-v2-8be5e073272
+
+```yaml
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: envoy-stats-monitor
+  namespace: istio-system
+  labels:
+    monitoring: istio-proxies
+    release: prom
+spec:
+  selector:
+    matchExpressions:
+    - {key: istio-prometheus-ignore, operator: DoesNotExist}
+  namespaceSelector:
+    any: true
+  jobLabel: envoy-stats
+  podMetricsEndpoints:
+  - path: /stats/prometheus
+    interval: 15s
+    relabelings:
+    - action: keep
+      sourceLabels: [__meta_kubernetes_pod_container_name]
+      regex: "istio-proxy"
+    - action: keep
+      sourceLabels: [__meta_kubernetes_pod_annotationpresent_prometheus_io_scrape]
+    - sourceLabels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+      action: replace
+      regex: ([^:]+)(?::\d+)?;(\d+)
+      replacement: $1:$2
+      targetLabel: __address__
+    - action: labeldrop
+      regex: "__meta_kubernetes_pod_label_(.+)"
+    - sourceLabels: [__meta_kubernetes_namespace]
+      action: replace
+      targetLabel: namespace
+    - sourceLabels: [__meta_kubernetes_pod_name]
+      action: replace
+      targetLabel: pod_name
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: istio-component-monitor
+  namespace: istio-system
+  labels:
+    monitoring: istio-components
+    release: prom
+spec:
+  jobLabel: istio
+  targetLabels: [app]
+  selector:
+    matchExpressions:
+    - {key: istio, operator: In, values: [pilot]}
+  namespaceSelector:
+    any: true
+  endpoints:
+  - port: http-monitoring
+    interval: 15s
+  ```
+
+Or you can use these custom `ServiceMonitor` and `PodMonitor` to add information to the grafana dashboard. 
 
 ```yaml
 apiVersion: monitoring.coreos.com/v1
