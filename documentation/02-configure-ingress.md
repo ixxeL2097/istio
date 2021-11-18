@@ -1,4 +1,4 @@
-# 02 - Configure
+# 02 - Configure Ingress
 ## Kubernetes Ingress
 
 - https://istio.io/latest/docs/tasks/traffic-management/ingress/kubernetes-ingress/
@@ -69,7 +69,7 @@ kubectl apply -f ingress-grafana.yaml -n monitoring
 N.B: for kubernetes version under 1.19, the apiVersion `networking.k8s.io/v1` is instead `networking.k8s.io/v1beta1`. Moreover, the `Ingress` resource use a slightly different syntax for the `backend` section.
 
 ## Istio Ingress Gateways
-### HTTP unsecure
+### HTTP unsecure Gateway termination
 
 - https://istio.io/latest/docs/tasks/traffic-management/ingress/ingress-control/
 
@@ -134,7 +134,7 @@ Note that if your `Gateway` is in a different namespace than your `VirtualServic
   - <namespace>/http-gateway
 ```
 
-### Secured TLS
+### Secured TLS Gateway termination
 
 - https://istio.io/latest/docs/tasks/traffic-management/ingress/secure-ingress/
 
@@ -222,4 +222,37 @@ spec:
       credentialName: fredcorp-wildcard-cert # must be the same as secret
     hosts:
     - "*"
+```
+
+### Ingress Gateway without TLS Termination
+
+If you prefer to use `Gateway` without TLS termination, you can select a `PASSTHROUGH` mode instead of `SIMPLE`:
+
+```yaml
+    tls:
+      mode: PASSTHROUGH
+```
+
+and then the `VirtualService`:
+
+```yaml
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: https-grafana
+spec:
+  hosts:
+  - grafana-istio.fredcorp.com
+  gateways:
+  - istio-system/https-gateway
+  tls:
+  - match:
+    - port: 443
+      sniHosts:
+      - grafana-istio.fredcorp.com
+    route:
+    - destination:
+        host: prom-grafana
+        port:
+          number: 80
 ```
