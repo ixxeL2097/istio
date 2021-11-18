@@ -136,6 +136,8 @@ Note that if your `Gateway` is in a different namespace than your `VirtualServic
 
 ### Secured TLS
 
+- https://istio.io/latest/docs/tasks/traffic-management/ingress/secure-ingress/
+
 Create a secret from the public and private key of your certificate:
 ```
 kubectl create secret tls fredcorp-wildcard-cert --key="certs/private.key" --cert="certs/cert.crt" -n istio-system
@@ -190,4 +192,34 @@ spec:
 
 ```
 kubectl apply -f virtualService-https-grafana.yaml -n monitoring
+```
+
+You can also use a mixed HTTP/HTTPS `Gateway` with TLS redirection:
+
+```yaml
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: mixed-tls-redirect-gateway
+spec:
+  selector:
+    istio: ingressgateway # use Istio default gateway implementation
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    tls:
+      httpsRedirect: true
+    hosts:
+    - "*"
+  - port:
+      number: 443
+      name: https
+      protocol: HTTPS
+    tls:
+      mode: SIMPLE
+      credentialName: fredcorp-wildcard-cert # must be the same as secret
+    hosts:
+    - "*"
 ```
