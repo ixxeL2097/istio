@@ -62,3 +62,61 @@ istiod                 ClusterIP      10.43.113.154   <none>        15010/TCP,15
 istio-egressgateway    ClusterIP      10.43.71.249    <none>        80/TCP,443/TCP                                                               16h
 istio-ingressgateway   LoadBalancer   10.43.179.203   172.19.0.3    15021:32339/TCP,80:32669/TCP,443:32713/TCP,31400:31885/TCP,15443:30514/TCP   16h
 ```
+
+## Monitoring : Prometheus
+
+The helm chart operator deploys a `ServiceMonitor` for itself in the namespace where it is installed. But this `ServiceMonitor` is not enough to scrape metrics of the Istio instance.
+
+You can use these `ServiceMonitor` and `PodMonitor` to add information to the grafana dashboard. Just make sure that the `labels.release` section match the needed key word for your prometheus operator.
+
+```yaml
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  labels:
+    release: prom
+  name: istio-sidecars
+spec:
+  selector:
+    matchLabels:
+      security.istio.io/tlsMode: 'istio'
+  namespaceSelector:
+    any: true
+  podMetricsEndpoints:
+    - port: http-envoy-prom
+      path: /stats/prometheus
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    release: prom
+  name: istio-ingressgateway
+spec:
+  selector:
+    matchLabels:
+      istio: ingressgateway
+  namespaceSelector:
+    matchNames:
+      - istio-system
+  endpoints:
+    - targetPort: http-envoy-prom
+      path: /stats/prometheus
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    release: prom
+  name: istiod
+spec:
+  selector:
+    matchLabels:
+      istio: pilot
+  namespaceSelector:
+    matchNames:
+      - istio-system
+  endpoints:
+    - port: http-monitoring
+      interval: 15s
+  ```
