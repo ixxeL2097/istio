@@ -127,14 +127,14 @@ spec:
 kubectl apply -f virtualService-grafana.yaml -n monitoring
 ```
 
-Note that if your `Gateway` is in a different namespace than your `VirtualService`, then you need to make sure you prefix the gateway reference with that namespace:
+:warning: Note that if your `Gateway` is in a different namespace than your `VirtualService`, then you need to make sure you prefix the gateway reference with that namespace:
 
 ```yaml
   gateways:
   - <namespace>/http-gateway
 ```
 
-If you also want to create the `VirtualService` in another namespace than the related service, you can use the internal DNS syntax to refer to it:
+:warning: If you also want to create the `VirtualService` in another namespace than the related service, you can use the internal DNS syntax to refer to it:
 ```yaml
     - destination:
         port:
