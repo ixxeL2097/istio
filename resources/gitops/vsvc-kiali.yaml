@@ -15,4 +15,4 @@ spec:
     - destination:
         port:
           number: 20001
-        host: kiali.kiali.svc.cluster.local
+        host: kiali.istio-system.svc.cluster.local
