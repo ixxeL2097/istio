@@ -69,10 +69,9 @@ For ArgoCD :
 ```yaml
 cr:
   spec:
-    deployment:
-      external_services:
-        prometheus:
-          url: 'http://prom-kube-prometheus-stack-prometheus.monitoring:9090/'
-        grafana:
-          url: 'http://prom-grafana.monitoring:80/'
+    external_services:
+      prometheus:
+        url: 'http://prom-kube-prometheus-stack-prometheus.monitoring:9090/'
+      grafana:
+        url: 'http://prom-grafana.monitoring:80/'
 ```
