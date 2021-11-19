@@ -47,3 +47,32 @@ spec:
     prometheus:
       url: 'http://prom-kube-prometheus-stack-prometheus.monitoring:9090/'
 ```
+
+You can override these information in the `values.yaml` of the helm chart under `cr.spec` section:
+```yaml
+cr:
+  create: false
+  name: kiali
+  # If you elect to create a Kiali CR (--set cr.create=true)
+  # and the operator is watching all namespaces (--set watchNamespace="")
+  # then this is the namespace where the CR will be created (the default will be the operator namespace).
+  namespace: ""
+
+  spec:
+    deployment:
+      accessible_namespaces:
+      - '**'
+```
+
+For ArgoCD :
+
+```yaml
+cr:
+  spec:
+    deployment:
+      external_services:
+        prometheus:
+          url: 'http://prom-kube-prometheus-stack-prometheus.monitoring:9090/'
+        grafana:
+          url: 'http://prom-grafana.monitoring:80/'
+```
