@@ -15,4 +15,4 @@ spec:
     - destination:
         port:
           number: 80
-        host: monitoring/prom-grafana
+        host: prom-grafana.monitoring.svc.cluster.local:80
