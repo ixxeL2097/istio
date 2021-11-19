@@ -1,5 +1,5 @@
 # 04 - Kiali
-## Sidecar injection
+## Installation
 
 - https://github.com/kiali/helm-charts
 
@@ -67,11 +67,22 @@ cr:
 Kiali CR :
 - https://github.com/kiali/kiali-operator/blob/master/deploy/kiali/kiali_cr.yaml
 
+By default, Kiali use token authentication (for Kubernetes, and OpenShift for OCP), but you can use "anonymous". Options are "anonymous", "token", "openshift", "openid", "header".
+
+```yaml
+cr:
+  spec:
+    auth:
+      strategy: anonymous
+```
+
 For ArgoCD :
 
 ```yaml
 cr:
   spec:
+    auth: 
+      strategy: anonymous
     external_services:
       prometheus:
         url: 'http://prom-kube-prometheus-stack-prometheus.monitoring:9090/'
