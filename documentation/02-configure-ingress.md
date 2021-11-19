@@ -134,6 +134,14 @@ Note that if your `Gateway` is in a different namespace than your `VirtualServic
   - <namespace>/http-gateway
 ```
 
+If you also want to create the `VirtualService` in another namespace than the related service, you can use the internal DNS syntax to refer to it:
+```yaml
+    - destination:
+        port:
+          number: 9090
+        host: prom-kube-prometheus-stack-prometheus.monitoring.svc.cluster.local
+```
+
 ### Secured TLS Gateway termination
 
 - https://istio.io/latest/docs/tasks/traffic-management/ingress/secure-ingress/
